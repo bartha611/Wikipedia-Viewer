@@ -1,11 +1,7 @@
+import 'bootstrap/dist/css/bootstrap.css';
 import React, { Component } from 'react';
 import './App.css';
 import $ from 'jquery';
-
-const enterStyle = {
-  backgroundColor: '#ddd',
-  color: 'black'
-};
 
 class App extends Component {
   constructor(props) {
@@ -51,29 +47,31 @@ class App extends Component {
           action: "query",
           prop: "info|extracts",
           generator: "search",
-          gsrlimit: 10,
+          gsrlimit: 12,
           gsrsearch: searchItem,
           gsrnamespace: 0,
           origin: '*',
           format: 'json',
           inprop: "url",
           explaintext: true,
-          exsentences: 2,
+          exsentences: 1,
           exintro: 1,
-          exlimit: 10,
+          exlimit: 12,
         },
         error: function(req, error) {
           console.log(error)
       }
       }).done(function(response) {
          var containers = []; 
-         Object.keys(response.query.pages).forEach(function(key) {
-           var element = {};
-           element.title = response.query.pages[key].title;
-           element.extract = response.query.pages[key].extract;
-           element.url = response.query.pages[key].fullurl;
-           containers.push(element);
-        });
+         console.log(response)
+         Object.keys(response.query.pages).forEach(function(key,index) {
+           var obj = response.query.pages[key];
+           var element = {}
+           element.title = obj.title
+           element.extract = obj.extract
+           element.url = obj.fullurl
+           containers.push(element)
+         })
           that.setState({
             data: containers
           });
@@ -81,6 +79,9 @@ class App extends Component {
   }
   render() {
     const buttons = this.state.data;
+    const results = buttons.map((x,index) => {
+      return index % 3 === 0 ? buttons.slice(index,index + 3): null
+    }).filter(x => x != null)
     return(
       <div id = "app">
         <div id = "search">
@@ -88,15 +89,19 @@ class App extends Component {
           onKeyDown = {this.handleEnter} tabIndex = '0'><i className = "fa fa-search fa-lg"></i></button>
           <input id = "searchBar" type = "text" placeholder = "search wiki" onChange = {this.updateState}/>
         </div>
-        <div className = "results">
-        {buttons.map((obj,index) => {
-          return(
-            <div onClick = {this.handleArticle} data-url = {obj.url} key = {index} className = "wiki-container">
-              <div className = "titles"><b>{obj.title}</b></div>
-              <div className = "info_extracts">{obj.extract}</div>
-            </div>
-            )
-        })}
+        <div className = "container">
+        {results.map((obj,index) => {
+            return (
+              <div className = "text-center row">
+              {obj.map(x => {
+                return(
+                    <div className = "col-md-4 box">
+                      <a target = "_blank" href = {x.url}><div className = "titles">{x.title}</div></a>
+                      <div className = "info-extracts">{x.extract}</div>
+                    </div>
+              )})}
+              </div>
+        )})}
          </div>
       </div>
     )
